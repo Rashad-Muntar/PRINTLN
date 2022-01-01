@@ -11,7 +11,12 @@ type User {
   username: String!
   email: String!
   password: String!
-  jobs: [Job!]!
+  jobs: [Job!]
+}
+
+type File {
+  price: Float!
+  url: String!
 }
 
 type Job {
@@ -21,7 +26,14 @@ type Job {
   completed: Boolean!
   file: String! 
 }
-
+type Time {
+  unixTime: Int!
+  timeStamp: String!
+}
+type LoggedUser {
+  user: User!
+  token: String!
+}
 # --------------------------INPUTS----------------------------
 input NewUser {
   username: String!
@@ -52,13 +64,20 @@ type Query {
 # --------------------------MUTATIONS----------------------------
 type Mutation {
   signup(input: NewUser!): User!
-  login(input: LoginUser!): String!
+  login(input: LoginUser!): LoggedUser!
   createJob(input: NewJob!): Job!
   deleteJob(id: Int!): String!
   updateJob(id: Int!, input: NewJob!): Job!
+  processFile(url: String!): File!
+}
+
+# --------------------------SUBSCRIPTIONS----------------------------
+type Subscription {
+  currentTime: Time!
 }
 
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }

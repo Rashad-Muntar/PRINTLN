@@ -2,6 +2,20 @@
 
 package model
 
+import (
+	"github.com/Rashad-Muntar/println/models"
+)
+
+type File struct {
+	Price float64 `json:"price"`
+	URL   string  `json:"url"`
+}
+
+type LoggedUser struct {
+	User  *models.User `json:"user"`
+	Token string       `json:"token"`
+}
+
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -19,4 +33,9 @@ type NewUser struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Time struct {
+	UnixTime  int    `json:"unixTime"`
+	TimeStamp string `json:"timeStamp"`
 }
