@@ -2,14 +2,7 @@
 
 package model
 
-type NewTodo struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type User struct {
-	ID       string `json:"id"`
+type NewUser struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`

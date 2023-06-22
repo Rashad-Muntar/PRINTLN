@@ -6,19 +6,31 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/Rashad-Muntar/println/config"
 	"github.com/Rashad-Muntar/println/graph/model"
+	"github.com/Rashad-Muntar/println/models"
 )
 
 // Signup is the resolver for the signup field.
-func (r *mutationResolver) Signup(ctx context.Context, input model.NewTodo) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Signup - signup"))
+func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*models.User, error) {
+	user := models.User{
+		Username: input.Username,
+		Email:    input.Email,
+		Password: input.Password,
+	}
+	newUser := config.DB.Create(&user)
+	if newUser.Error != nil {
+		return nil, newUser.Error
+	}
+	return &user, nil
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
+	var users []*models.User
+	config.DB.Find(&users)
+	return users, nil
 }
 
 // Mutation returns MutationResolver implementation.
