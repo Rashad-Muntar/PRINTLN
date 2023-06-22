@@ -10,15 +10,22 @@ import (
 	"github.com/Rashad-Muntar/println/config"
 	"github.com/Rashad-Muntar/println/graph/model"
 	"github.com/Rashad-Muntar/println/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Signup is the resolver for the signup field.
 func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*models.User, error) {
+	
+	bcryptPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
 	user := models.User{
 		Username: input.Username,
 		Email:    input.Email,
-		Password: input.Password,
+		Password: string(bcryptPassword),
 	}
+
 	newUser := config.DB.Create(&user)
 	if newUser.Error != nil {
 		return nil, newUser.Error

@@ -11,6 +11,8 @@ require (
 	gorm.io/gorm v1.25.1
 )
 
+require github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
+
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
