@@ -6,16 +6,18 @@ package graph
 
 import (
 	"context"
+	"os"
+	"time"
 
 	"github.com/Rashad-Muntar/println/config"
 	"github.com/Rashad-Muntar/println/graph/model"
 	"github.com/Rashad-Muntar/println/models"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Signup is the resolver for the signup field.
 func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*models.User, error) {
-	
 	bcryptPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -31,6 +33,31 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*mo
 		return nil, newUser.Error
 	}
 	return &user, nil
+}
+
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (string, error) {
+	var user models.User
+
+	config.DB.First(&user, "email = ?", input.Email)
+	if user.Id == 0 {
+		return "User not found", nil
+	}
+	checkPass := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
+
+	if checkPass != nil {
+		return "Password does not match", nil
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.Id,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return "Ooops try again", err
+	}
+
+	return tokenString, nil
 }
 
 // Users is the resolver for the users field.

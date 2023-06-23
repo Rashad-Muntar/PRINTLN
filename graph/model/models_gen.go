@@ -2,6 +2,20 @@
 
 package model
 
+import (
+	"github.com/Rashad-Muntar/println/models"
+)
+
+type AuthPayload struct {
+	User  *models.User `json:"User"`
+	Token string       `json:"Token"`
+}
+
+type LoginUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type NewUser struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
