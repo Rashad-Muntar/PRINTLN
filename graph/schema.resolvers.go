@@ -6,13 +6,14 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/Rashad-Muntar/println/config"
 	"github.com/Rashad-Muntar/println/graph/model"
 	"github.com/Rashad-Muntar/println/models"
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -60,11 +61,46 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (st
 	return tokenString, nil
 }
 
+// CreateJob is the resolver for the createJob field.
+func (r *mutationResolver) CreateJob(ctx context.Context, input model.NewJob) (*models.Job, error) {
+	job := models.Job{
+		Description: *input.Description,
+		File:        input.File,
+	}
+
+	newJob := config.DB.Create(&job)
+	if newJob.Error != nil {
+		return nil, newJob.Error
+	}
+	return &job, nil
+}
+
+// DeleteJob is the resolver for the deleteJob field.
+func (r *mutationResolver) DeleteJob(ctx context.Context, id string) (string, error) {
+	config.DB.Where("name = ?", "jinzhu").Delete(id)
+	return "Job deleted", nil
+}
+
+// UpdateJob is the resolver for the updateJob field.
+func (r *mutationResolver) UpdateJob(ctx context.Context, id string, input model.NewJob) (*models.Job, error) {
+	job := models.Job{
+		File:        input.File,
+		Description: *input.Description,
+	}
+	config.DB.Model(&job).Where("id = ?", id).Updates(job)
+	return &job, nil
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
 	var users []*models.User
 	config.DB.Find(&users)
 	return users, nil
+}
+
+// Jobs is the resolver for the jobs field.
+func (r *queryResolver) Jobs(ctx context.Context) ([]*models.Job, error) {
+	panic(fmt.Errorf("not implemented: Jobs - jobs"))
 }
 
 // Mutation returns MutationResolver implementation.
