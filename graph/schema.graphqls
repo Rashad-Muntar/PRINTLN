@@ -44,7 +44,9 @@ input LoginUser {
 # --------------------------QUERIES----------------------------
 type Query {
   users: [User!]!
+  user(id: Int!): User!
   jobs: [Job!]!
+  job(id: Int!): Job!
 }
 
 # --------------------------MUTATIONS----------------------------
@@ -52,8 +54,8 @@ type Mutation {
   signup(input: NewUser!): User!
   login(input: LoginUser!): String!
   createJob(input: NewJob!): Job!
-  deleteJob(id: String!): String!
-  updateJob(id: String!, input: NewJob!): Job!
+  deleteJob(id: Int!): String!
+  updateJob(id: Int!, input: NewJob!): Job!
 }
 
 schema {

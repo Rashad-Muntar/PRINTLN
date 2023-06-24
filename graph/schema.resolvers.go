@@ -79,13 +79,13 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input model.NewJob) (*
 }
 
 // DeleteJob is the resolver for the deleteJob field.
-func (r *mutationResolver) DeleteJob(ctx context.Context, id string) (string, error) {
+func (r *mutationResolver) DeleteJob(ctx context.Context, id int) (string, error) {
 	config.DB.Where("name = ?", "jinzhu").Delete(id)
 	return "Job deleted", nil
 }
 
 // UpdateJob is the resolver for the updateJob field.
-func (r *mutationResolver) UpdateJob(ctx context.Context, id string, input model.NewJob) (*models.Job, error) {
+func (r *mutationResolver) UpdateJob(ctx context.Context, id int, input model.NewJob) (*models.Job, error) {
 	job := models.Job{
 		File:        input.File,
 		Description: *input.Description,
@@ -101,9 +101,25 @@ func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id int) (*models.User, error) {
+	var user models.User
+	config.DB.First(&user, id)
+	return &user, nil
+}
+
 // Jobs is the resolver for the jobs field.
 func (r *queryResolver) Jobs(ctx context.Context) ([]*models.Job, error) {
-	panic(fmt.Errorf("not implemented: Jobs - jobs"))
+	var jobs []*models.Job
+	config.DB.Find(&jobs)
+	return jobs, nil
+}
+
+// Job is the resolver for the job field.
+func (r *queryResolver) Job(ctx context.Context, id int) (*models.Job, error) {
+	var job models.Job
+	config.DB.First(&job, id)
+	return &job, nil
 }
 
 // Jobs is the resolver for the jobs field.
