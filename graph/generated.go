@@ -40,6 +40,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -47,9 +48,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Job struct {
+		Completed   func(childComplexity int) int
 		Description func(childComplexity int) int
 		File        func(childComplexity int) int
 		Id          func(childComplexity int) int
+		OnGoing     func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -68,6 +71,7 @@ type ComplexityRoot struct {
 	User struct {
 		Email    func(childComplexity int) int
 		Id       func(childComplexity int) int
+		Jobs     func(childComplexity int) int
 		Password func(childComplexity int) int
 		Username func(childComplexity int) int
 	}
@@ -84,6 +88,9 @@ type QueryResolver interface {
 	Users(ctx context.Context) ([]*models.User, error)
 	Jobs(ctx context.Context) ([]*models.Job, error)
 }
+type UserResolver interface {
+	Jobs(ctx context.Context, obj *models.User) ([]*models.Job, error)
+}
 
 type executableSchema struct {
 	resolvers  ResolverRoot
@@ -99,6 +106,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Job.completed":
+		if e.complexity.Job.Completed == nil {
+			break
+		}
+
+		return e.complexity.Job.Completed(childComplexity), true
 
 	case "Job.description":
 		if e.complexity.Job.Description == nil {
@@ -120,6 +134,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.Id(childComplexity), true
+
+	case "Job.onGoing":
+		if e.complexity.Job.OnGoing == nil {
+			break
+		}
+
+		return e.complexity.Job.OnGoing(childComplexity), true
 
 	case "Mutation.createJob":
 		if e.complexity.Mutation.CreateJob == nil {
@@ -208,6 +229,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Id(childComplexity), true
+
+	case "User.jobs":
+		if e.complexity.User.Jobs == nil {
+			break
+		}
+
+		return e.complexity.User.Jobs(childComplexity), true
 
 	case "User.password":
 		if e.complexity.User.Password == nil {
@@ -572,6 +600,94 @@ func (ec *executionContext) fieldContext_Job_description(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Job_onGoing(ctx context.Context, field graphql.CollectedField, obj *models.Job) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Job_onGoing(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnGoing, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Job_onGoing(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Job",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Job_completed(ctx context.Context, field graphql.CollectedField, obj *models.Job) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Job_completed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Completed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Job_completed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Job",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Job_file(ctx context.Context, field graphql.CollectedField, obj *models.Job) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Job_file(ctx, field)
 	if err != nil {
@@ -663,6 +779,8 @@ func (ec *executionContext) fieldContext_Mutation_signup(ctx context.Context, fi
 				return ec.fieldContext_User_email(ctx, field)
 			case "password":
 				return ec.fieldContext_User_password(ctx, field)
+			case "jobs":
+				return ec.fieldContext_User_jobs(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -779,6 +897,10 @@ func (ec *executionContext) fieldContext_Mutation_createJob(ctx context.Context,
 				return ec.fieldContext_Job_Id(ctx, field)
 			case "description":
 				return ec.fieldContext_Job_description(ctx, field)
+			case "onGoing":
+				return ec.fieldContext_Job_onGoing(ctx, field)
+			case "completed":
+				return ec.fieldContext_Job_completed(ctx, field)
 			case "file":
 				return ec.fieldContext_Job_file(ctx, field)
 			}
@@ -897,6 +1019,10 @@ func (ec *executionContext) fieldContext_Mutation_updateJob(ctx context.Context,
 				return ec.fieldContext_Job_Id(ctx, field)
 			case "description":
 				return ec.fieldContext_Job_description(ctx, field)
+			case "onGoing":
+				return ec.fieldContext_Job_onGoing(ctx, field)
+			case "completed":
+				return ec.fieldContext_Job_completed(ctx, field)
 			case "file":
 				return ec.fieldContext_Job_file(ctx, field)
 			}
@@ -964,6 +1090,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 				return ec.fieldContext_User_email(ctx, field)
 			case "password":
 				return ec.fieldContext_User_password(ctx, field)
+			case "jobs":
+				return ec.fieldContext_User_jobs(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -1014,6 +1142,10 @@ func (ec *executionContext) fieldContext_Query_jobs(ctx context.Context, field g
 				return ec.fieldContext_Job_Id(ctx, field)
 			case "description":
 				return ec.fieldContext_Job_description(ctx, field)
+			case "onGoing":
+				return ec.fieldContext_Job_onGoing(ctx, field)
+			case "completed":
+				return ec.fieldContext_Job_completed(ctx, field)
 			case "file":
 				return ec.fieldContext_Job_file(ctx, field)
 			}
@@ -1323,6 +1455,62 @@ func (ec *executionContext) fieldContext_User_password(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_jobs(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_jobs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Jobs(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Job)
+	fc.Result = res
+	return ec.marshalNJob2ᚕᚖgithubᚗcomᚋRashadᚑMuntarᚋprintlnᚋmodelsᚐJobᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_jobs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "Id":
+				return ec.fieldContext_Job_Id(ctx, field)
+			case "description":
+				return ec.fieldContext_Job_description(ctx, field)
+			case "onGoing":
+				return ec.fieldContext_Job_onGoing(ctx, field)
+			case "completed":
+				return ec.fieldContext_Job_completed(ctx, field)
+			case "file":
+				return ec.fieldContext_Job_file(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Job", field.Name)
 		},
 	}
 	return fc, nil
@@ -3146,13 +3334,22 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, obj interf
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"description", "file"}
+	fieldsInOrder := [...]string{"userId", "description", "file", "onGoing", "completed"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
 		case "description":
 			var err error
 
@@ -3171,6 +3368,24 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, obj interf
 				return it, err
 			}
 			it.File = data
+		case "onGoing":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onGoing"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnGoing = data
+		case "completed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("completed"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Completed = data
 		}
 	}
 
@@ -3250,6 +3465,16 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "description":
 			out.Values[i] = ec._Job_description(ctx, field, obj)
+		case "onGoing":
+			out.Values[i] = ec._Job_onGoing(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "completed":
+			out.Values[i] = ec._Job_completed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "file":
 			out.Values[i] = ec._Job_file(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3463,23 +3688,59 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "Id":
 			out.Values[i] = ec._User_Id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "username":
 			out.Values[i] = ec._User_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "email":
 			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "password":
 			out.Values[i] = ec._User_password(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "jobs":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_jobs(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -8,8 +8,11 @@ type LoginUser struct {
 }
 
 type NewJob struct {
+	UserID      int     `json:"userId"`
 	Description *string `json:"description,omitempty"`
 	File        string  `json:"file"`
+	OnGoing     bool    `json:"onGoing"`
+	Completed   bool    `json:"completed"`
 }
 
 type NewUser struct {

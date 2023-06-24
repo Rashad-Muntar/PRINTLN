@@ -64,7 +64,10 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (st
 // CreateJob is the resolver for the createJob field.
 func (r *mutationResolver) CreateJob(ctx context.Context, input model.NewJob) (*models.Job, error) {
 	job := models.Job{
+		UserID:      input.UserID,
 		Description: *input.Description,
+		OnGoing:     input.OnGoing,
+		Completed:   input.Completed,
 		File:        input.File,
 	}
 
@@ -103,11 +106,35 @@ func (r *queryResolver) Jobs(ctx context.Context) ([]*models.Job, error) {
 	panic(fmt.Errorf("not implemented: Jobs - jobs"))
 }
 
+// Jobs is the resolver for the jobs field.
+func (r *userResolver) Jobs(ctx context.Context, obj *models.User) ([]*models.Job, error) {
+	panic(fmt.Errorf("not implemented: Jobs - jobs"))
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *jobResolver) OnGoing(ctx context.Context, obj *models.Job) (bool, error) {
+	panic(fmt.Errorf("not implemented: OnGoing - onGoing"))
+}
+func (r *jobResolver) Completed(ctx context.Context, obj *models.Job) (bool, error) {
+	panic(fmt.Errorf("not implemented: Completed - completed"))
+}
+
+type jobResolver struct{ *Resolver }

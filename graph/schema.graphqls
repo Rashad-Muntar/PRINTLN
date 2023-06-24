@@ -11,11 +11,14 @@ type User {
   username: String!
   email: String!
   password: String!
+  jobs: [Job!]!
 }
 
 type Job {
   Id: Int!
   description: String
+  onGoing: Boolean!
+  completed: Boolean!
   file: String! 
 }
 
@@ -27,8 +30,11 @@ input NewUser {
 }
 
 input NewJob {
+  userId: Int!
   description: String
   file: String!
+  onGoing: Boolean!
+  completed: Boolean!
 }
 
 input LoginUser {
