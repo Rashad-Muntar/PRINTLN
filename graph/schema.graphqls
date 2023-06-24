@@ -3,7 +3,9 @@
 # https://gqlgen.com/getting-started/
 
 scalar UUID
+scalar Upload
 
+# --------------------------TYPES----------------------------
 type User {
   Id: Int!
   username: String!
@@ -11,27 +13,42 @@ type User {
   password: String!
 }
 
-type Query {
-  users: [User!]!
+type Job {
+  Id: Int!
+  description: String
+  file: String! 
 }
 
+# --------------------------INPUTS----------------------------
 input NewUser {
   username: String!
   email: String!
   password: String!
 }
 
-type AuthPayload {
-	User:  User!
-	Token: String!
+input NewJob {
+  description: String
+  file: String!
 }
 
 input LoginUser {
   email: String!
   password: String!
 }
+# --------------------------QUERIES----------------------------
+type Query {
+  users: [User!]!
+  jobs: [Job!]!
+}
 
+# --------------------------MUTATIONS----------------------------
 type Mutation {
   signup(input: NewUser!): User!
   login(input: LoginUser!): String!
+  createJob(input: NewJob!): Job!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
 }
