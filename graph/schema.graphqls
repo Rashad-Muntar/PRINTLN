@@ -21,6 +21,17 @@ input NewUser {
   password: String!
 }
 
+type AuthPayload {
+	User:  User!
+	Token: String!
+}
+
+input LoginUser {
+  email: String!
+  password: String!
+}
+
 type Mutation {
   signup(input: NewUser!): User!
+  login(input: LoginUser!): String!
 }
