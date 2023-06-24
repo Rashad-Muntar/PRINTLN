@@ -81,6 +81,16 @@ func (r *mutationResolver) DeleteJob(ctx context.Context, id string) (string, er
 	return "Job deleted", nil
 }
 
+// UpdateJob is the resolver for the updateJob field.
+func (r *mutationResolver) UpdateJob(ctx context.Context, id string, input model.NewJob) (*models.Job, error) {
+	job := models.Job{
+		File:        input.File,
+		Description: *input.Description,
+	}
+	config.DB.Model(&job).Where("id = ?", id).Updates(job)
+	return &job, nil
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
 	var users []*models.User

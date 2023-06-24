@@ -47,6 +47,7 @@ type Mutation {
   login(input: LoginUser!): String!
   createJob(input: NewJob!): Job!
   deleteJob(id: String!): String!
+  updateJob(id: String!, input: NewJob!): Job!
 }
 
 schema {
