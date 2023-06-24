@@ -65,7 +65,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (st
 func (r *mutationResolver) CreateJob(ctx context.Context, input model.NewJob) (*models.Job, error) {
 	job := models.Job{
 		Description: *input.Description,
-		File: 	  input.File,
+		File:        input.File,
 	}
 
 	newJob := config.DB.Create(&job)
@@ -73,6 +73,12 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input model.NewJob) (*
 		return nil, newJob.Error
 	}
 	return &job, nil
+}
+
+// DeleteJob is the resolver for the deleteJob field.
+func (r *mutationResolver) DeleteJob(ctx context.Context, id string) (string, error) {
+	config.DB.Where("name = ?", "jinzhu").Delete(id)
+	return "Job deleted", nil
 }
 
 // Users is the resolver for the users field.
