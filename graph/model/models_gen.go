@@ -2,18 +2,40 @@
 
 package model
 
+import (
+	"github.com/Rashad-Muntar/println/models"
+)
+
+type File struct {
+	Price float64 `json:"price"`
+	URL   string  `json:"url"`
+}
+
+type LoggedUser struct {
+	User  *models.User `json:"user"`
+	Token string       `json:"token"`
+}
+
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type NewJob struct {
+	UserID      int     `json:"userId"`
 	Description *string `json:"description,omitempty"`
 	File        string  `json:"file"`
+	OnGoing     bool    `json:"onGoing"`
+	Completed   bool    `json:"completed"`
 }
 
 type NewUser struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type Time struct {
+	UnixTime  int    `json:"unixTime"`
+	TimeStamp string `json:"timeStamp"`
 }

@@ -7,13 +7,16 @@ package graph
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"time"
 
 	"github.com/Rashad-Muntar/println/config"
 	"github.com/Rashad-Muntar/println/graph/model"
 	"github.com/Rashad-Muntar/println/models"
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/Rashad-Muntar/println/utils"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -37,17 +40,18 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*mo
 }
 
 // Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (string, error) {
+func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (*model.LoggedUser, error) {
 	var user models.User
 
 	config.DB.First(&user, "email = ?", input.Email)
 	if user.Id == 0 {
-		return "User not found", nil
+		log.Fatal("User not found")
+		// return {_, "User not found"}, nil
 	}
 	checkPass := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
 
 	if checkPass != nil {
-		return "Password does not match", nil
+		log.Fatal("Password does not match")
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.Id,
@@ -55,16 +59,24 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginUser) (st
 	})
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		return "Ooops try again", err
+		log.Fatal("Ooops try again")
 	}
 
-	return tokenString, nil
+	loggedUser := &model.LoggedUser{
+		User:  &user,
+		Token: tokenString,
+	}
+
+	return loggedUser, nil
 }
 
 // CreateJob is the resolver for the createJob field.
 func (r *mutationResolver) CreateJob(ctx context.Context, input model.NewJob) (*models.Job, error) {
 	job := models.Job{
+		UserID:      input.UserID,
 		Description: *input.Description,
+		OnGoing:     input.OnGoing,
+		Completed:   input.Completed,
 		File:        input.File,
 	}
 
@@ -76,19 +88,43 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input model.NewJob) (*
 }
 
 // DeleteJob is the resolver for the deleteJob field.
-func (r *mutationResolver) DeleteJob(ctx context.Context, id string) (string, error) {
+func (r *mutationResolver) DeleteJob(ctx context.Context, id int) (string, error) {
 	config.DB.Where("name = ?", "jinzhu").Delete(id)
 	return "Job deleted", nil
 }
 
 // UpdateJob is the resolver for the updateJob field.
-func (r *mutationResolver) UpdateJob(ctx context.Context, id string, input model.NewJob) (*models.Job, error) {
+func (r *mutationResolver) UpdateJob(ctx context.Context, id int, input model.NewJob) (*models.Job, error) {
 	job := models.Job{
 		File:        input.File,
 		Description: *input.Description,
 	}
 	config.DB.Model(&job).Where("id = ?", id).Updates(job)
 	return &job, nil
+}
+
+// ProcessFile is the resolver for the processFile field.
+func (r *mutationResolver) ProcessFile(ctx context.Context, url string) (*model.File, error) {
+	file, err := ioutil.TempFile("", "uploaded.*")
+	if err != nil {
+		log.Printf("Error saving uploaded file: %s\n", err.Error())
+		return nil, err
+	}
+	defer os.Remove(file.Name())
+
+	_, err = file.Write([]byte(url))
+	if err != nil {
+		log.Printf("Error writing uploaded file: %s\n", err.Error())
+		return nil, err
+	}
+	numberofPages, _ := utils.ProcessPDF(file.Name())
+	price := float64(numberofPages) * 3.2
+	File := &model.File{
+		URL:   url,
+		Price: price,
+	}
+	// return processPDF(file.Name())
+	return File, nil
 }
 
 // Users is the resolver for the users field.
@@ -98,8 +134,66 @@ func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id int) (*models.User, error) {
+	var user models.User
+	config.DB.First(&user, id)
+	return &user, nil
+}
+
 // Jobs is the resolver for the jobs field.
 func (r *queryResolver) Jobs(ctx context.Context) ([]*models.Job, error) {
+	var jobs []*models.Job
+	config.DB.Find(&jobs)
+	return jobs, nil
+}
+
+// Job is the resolver for the job field.
+func (r *queryResolver) Job(ctx context.Context, id int) (*models.Job, error) {
+	var job models.Job
+	config.DB.First(&job, id)
+	return &job, nil
+}
+
+// CurrentTime is the resolver for the currentTime field.
+func (r *subscriptionResolver) CurrentTime(ctx context.Context) (<-chan *model.Time, error) {
+	
+	ch := make(chan *model.Time)
+
+	go func() {
+		for {
+			// In our example we'll send the current time every second.
+			time.Sleep(1 * time.Second)
+			fmt.Println("Tick")
+
+			// Prepare your object.
+			currentTime := time.Now()
+			t := &model.Time{
+				UnixTime:  int(currentTime.Unix()),
+				TimeStamp: currentTime.Format(time.RFC3339),
+			}
+
+			// The subscription may have got closed due to the client disconnecting.
+			// Hence we do send in a select block with a check for context cancellation.
+			// This avoids goroutine getting blocked forever or panicking,
+			select {
+			case <-ctx.Done(): // This runs when context gets cancelled. Subscription closes.
+				fmt.Println("Subscription Closed")
+				// Handle deregistration of the channel here. `close(ch)`
+				return // Remember to return to end the routine.
+			
+			case ch <- t: // This is the actual send.
+				// Our message went through, do nothing	
+			}
+		}
+	}()
+
+	// We return the channel and no error.
+	return ch, nil
+}
+
+// Jobs is the resolver for the jobs field.
+func (r *userResolver) Jobs(ctx context.Context, obj *models.User) ([]*models.Job, error) {
 	panic(fmt.Errorf("not implemented: Jobs - jobs"))
 }
 
@@ -109,5 +203,28 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Subscription returns SubscriptionResolver implementation.
+func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionResolver{r} }
+
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *jobResolver) OnGoing(ctx context.Context, obj *models.Job) (bool, error) {
+	panic(fmt.Errorf("not implemented: OnGoing - onGoing"))
+}
+func (r *jobResolver) Completed(ctx context.Context, obj *models.Job) (bool, error) {
+	panic(fmt.Errorf("not implemented: Completed - completed"))
+}
+
+type jobResolver struct{ *Resolver }
