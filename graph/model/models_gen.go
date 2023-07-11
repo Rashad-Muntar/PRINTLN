@@ -6,9 +6,20 @@ import (
 	"github.com/Rashad-Muntar/println/models"
 )
 
+type Edge struct {
+	Node   *models.Job `json:"node,omitempty"`
+	Cursor *string     `json:"cursor,omitempty"`
+}
+
 type File struct {
 	Price float64 `json:"price"`
 	URL   string  `json:"url"`
+}
+
+type JobResult struct {
+	TotalCount *string   `json:"totalCount,omitempty"`
+	Edges      []*Edge   `json:"edges,omitempty"`
+	PageInfo   *PageInfo `json:"pageInfo,omitempty"`
 }
 
 type LoggedUser struct {
@@ -33,6 +44,11 @@ type NewUser struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type PageInfo struct {
+	StartCurso  *string `json:"startCurso,omitempty"`
+	HasNextPage *bool   `json:"hasNextPage,omitempty"`
 }
 
 type Time struct {

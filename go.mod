@@ -6,8 +6,8 @@ require (
 	github.com/99designs/gqlgen v0.17.33
 	github.com/aws/aws-sdk-go v1.44.288
 	github.com/gin-gonic/gin v1.9.1
-	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/joho/godotenv v1.5.1
+	github.com/nats-io/nats.go v1.27.1
 	github.com/vektah/gqlparser/v2 v2.5.3
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.1
@@ -17,6 +17,10 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
+	github.com/nats-io/nats-server/v2 v2.9.19 // indirect
+	github.com/nats-io/nkeys v0.4.4 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
@@ -42,6 +46,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -63,7 +68,7 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/unidoc/unipdf/v3 v3.47.0
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.10.0
+	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
